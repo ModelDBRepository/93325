@@ -1,0 +1,314 @@
+/* 
+Written by Bob Calin-Jageman
+
+*/
+begintemplate spikehash
+	public lastspike, spikehash, ready, stepit, hashvec
+	objref cellpointer, hashvec
+
+	proc init() {
+		cellpointer = $o1
+		hashvec = new Vector()
+	}
+
+	proc ready() {
+		lastspike = cellpointer.sthold.lastspike
+		spikehash = 0
+		
+	}
+
+	proc stepit() {
+		if (lastspike != cellpointer.sthold.lastspike) {
+			lastspike = cellpointer.sthold.lastspike
+			spikehash = 20
+		} else {
+			spikehash = 0
+		}
+	}
+
+endtemplate spikehash
+
+objref taptrain, tapfile
+taptrain = new Vector()
+tapstart = 5000
+
+func tapload() {
+
+	taptrain = new Vector()
+	tapfile = new File()
+	tapfile.ropen($s1)
+	while (!tapfile.eof()) {
+		taptrain.append(tapfile.scanvar())
+	}
+	tapfile.close
+	
+return 1
+}
+
+
+load_file("nrngui.hoc")
+
+// chdir("c:/sims/nfrost")
+// chdir("mods")
+// nrn_load_dll("nrnmech.dll")
+// chdir("..")
+
+load_file("celltypes/C2Type.hoc") 
+load_file("celltypes/DSIType.hoc")
+load_file("celltypes/VSIType.hoc")
+load_file("celltypes/IFType.hoc")
+load_file("celltypes/DRIType.hoc")
+
+objref C2, DSI, VSI, DRI, IF, synlist, outfile, stimcon
+strdef runcode, experiment, outfilename
+
+experiment = "none"
+runcode = "single"
+
+outfile = new File()
+outfile.aopen("bursts.txt")
+strdef dstring
+
+C2 = new C2Type()
+DSI = new DSIType()
+VSI = new VSIType()
+IF = new IFType()
+DRI = new DRIType()
+synlist = new List()
+
+load_file("lib/syn.hoc")
+readsyn("syndefs/RAMP_DSI.txt", IF_DSIs)
+readsyn("syndefs/C2_DSI.txt", C2_DSIs)
+readsyn("syndefs/VSI_DSI.txt", VSI_DSIs)
+readsyn("syndefs/VSI_C2.txt", VSI_C2s)
+readsyn("syndefs/DSI_C2.txt", DSI_C2s)
+readsyn("syndefs/DSI_VSI.txt", DSI_VSIs)
+readsyn("syndefs/C2_VSI.txt", C2_VSIs)
+
+readsyn("syndefs/DSI_DSI.txt", DSI_DSIs)
+readsyn("syndefs/VSI_VSI.txt", VSI_VSIs)
+
+readsyn("syndefs/RAMP_DSI.txt", IF_VSIs)
+
+proc cell_3() {
+readsyn("syndefs/nosyn.txt", C2_DRIs)
+readsyn("syndefs/nosyn.txt", DRI_DSIs)
+readsyn("syndefs/nosyn.txt", IF_DRIs)
+readsyn("syndefs/RAMP_DSI.txt", IF_DSIs)
+stimcon = IF_DSInc
+}
+
+proc cell_4(){
+readsyn("syndefs/nosyn.txt", IF_DSIs)
+readsyn("syndefs/C2_DRI.txt", C2_DRIs)
+readsyn("syndefs/DRI_DSI.txt", DRI_DSIs)
+readsyn("syndefs/RAMP_DRI.txt", IF_DRIs)
+stimcon = IF_DRInc
+}
+
+cell_3()
+
+stimdelay = 5000
+stimrate = 10
+stimduration = 1000
+x = 0
+
+objref swimtest
+swimtest = new List()
+swimtest.append(DSI)
+swimtest.append(C2)
+swimtest.append(VSI)
+swimindex = 0
+swims = 0
+swimstart = 0
+swimcycle = 0
+lastvsiburst = 0
+lastswim = 0
+objref swimcyclev
+swimcyclev = new Vector()
+DSI.sthold.burstmaxint = 600
+
+objref DSIhash, VSIhash, C2hash, DRIhash
+DSIhash = new spikehash(DSI)
+VSIhash = new spikehash(VSI)
+C2hash = new spikehash(C2)
+DRIhash = new spikehash(DRI)
+
+objref DSIv, C2v, DRIv, VSIv, results
+
+DSIv = new Vector()
+C2v = new Vector()
+DRIv = new Vector()
+VSIv = new Vector()
+DSIv.record(&DSI.soma.v)
+C2v.record(&C2.soma.v)
+DRIv.record(&DRI.soma.v)
+VSIv.record(&VSI.soma.v)
+DSIhash.hashvec.record(&DSIhash.spikehash)
+C2hash.hashvec.record(&C2hash.spikehash)
+VSIhash.hashvec.record(&VSIhash.spikehash)
+DRIhash.hashvec.record(&DRIhash.spikehash)
+results = new Vector()
+
+access C2.soma
+load_file("ses/cpg.ses")
+tstop = 90000
+dt = 2
+
+//run()
+
+proc init() {
+
+
+			finitialize(v_init)
+			fcurrent()
+			
+			C2.soma.v = C2.ileak.vrest
+			DSI.soma.v = DSI.ileak.vrest
+			VSI.soma.v = VSI.ileak.vrest
+			DRI.soma.v = DRI.ileak.vrest
+			
+			if (taptrain.size > 0) {
+				for (am = 0; am < taptrain.size; am = am+1) {
+				   stimcon.event(taptrain.x[am]+tapstart)
+				}
+			} else {
+
+				for(x = stimdelay; x < (stimdelay+stimduration); x = x + ((1/stimrate)*1000)) {
+					print stimcon, x
+					stimcon.event(x)
+					IF_VSInc.event(x)
+				}
+			}
+
+			swimindex = 0
+			swims = 0
+			swimstart = 0
+			swimcycle = 0
+			lastvsiburst = 0
+			lastswim = 0
+			swimcyclev = new Vector()
+
+			DSIhash.ready()
+			C2hash.ready()
+			VSIhash.ready()
+			DRIhash.ready()
+			
+		}
+
+proc advance() {
+
+	DSIhash.stepit()
+	VSIhash.stepit()
+	C2hash.stepit()
+	DRIhash.stepit()
+	
+	fadvance()
+	burstend(C2)
+	burstend(DSI)
+	burstend(VSI)
+	burstend(DRI)
+
+	if (swimtest.object[swimindex].sthold.bursting && swimtest.object[swimindex].sthold.burststart > swimstart) {
+		if (swimtest.object[swimindex] == DSI) { 
+			if (swims > 0) {
+				swimcycle = swimcycle + (t-swimstart)
+				swimcyclev.append(t-swimstart)
+			}
+			swimstart = t
+		}
+			
+		swimindex = swimindex + 1
+
+		if (swimindex >= swimtest.count()) {
+			lastswim = swimtest.object[swimindex-1].sthold.burststart 
+			swims = swims + 1
+			swimindex = 0
+				
+		}
+	}
+
+}
+
+proc burstend() {
+	if ($o1.sthold.bursting) {
+		if ((t - $o1.sthold.lastspike) > $o1.sthold.burstmaxint) {
+			outfile.printf("%s	%s	%s	%f	%f	%f	%f\n", experiment, runcode, $o1, $o1.sthold.burstno + 1, $o1.sthold.burststart, $o1.sthold.lastspike, $o1.sthold.burstcount)
+			if($o1 == VSI) { lastvsiburst = $o1.sthold.burststart  }
+			$o1.sthold.burstcount = 0
+			$o1.sthold.bursting = 0
+			$o1.sthold.burststart = 0
+			$o1.sthold.burstno = $o1.sthold.burstno + 1
+			
+		}
+	}
+}
+
+proc report() {local x localobj lister, tholds, cobj
+	lister = new List("NetCon")
+	tholds = new List("thold")
+	x = 0
+	print "cells:"
+	while (x < lister.count()) {
+		cobj = lister.object[x]
+		if (tholds.index(cobj.syn) != -1) {
+			cobj = cobj.postcell
+			print cobj
+			printf("	%f, %f, %f, %f, %f, %f\n", cobj.ileak.r, cobj.soma.cm/11.28, cobj.ileak.vrest,  cobj.sthold.steadystate, cobj.sthold.reset, cobj.sthold.decaytc)
+		}
+		x = x +1
+	}
+	print " "
+	print "auto synapses:"
+	x = 0
+	while (x < lister.count()) {
+		cobj = lister.object[x]
+		if (tholds.index(cobj.syn) == -1) {
+		if (cobj.precell == cobj.postcell) {
+			printf ("%s - %s\n", cobj.precell, cobj.postcell)
+			printf("	%f, %f, %f, %f\n", cobj.syn.G1_weight, cobj.syn.G1_eRev, cobj.syn.G1_opentc, cobj.syn.G1_closetc)
+			printf("	%f, %f, %f, %f\n", cobj.syn.G2_weight, cobj.syn.G2_eRev, cobj.syn.G2_opentc, cobj.syn.G2_closetc)
+			printf("	%f, %f, %f, %f\n", cobj.syn.G3_weight, cobj.syn.G3_eRev, cobj.syn.G3_opentc, cobj.syn.G3_closetc)		
+		}
+		}
+		x = x +1
+	}
+
+	print "synapses:"
+	x = 0
+	while (x < lister.count()) {
+		cobj = lister.object[x]
+		if (tholds.index(cobj.syn) == -1) {
+		if (cobj.precell != cobj.postcell) {
+			printf ("%s - %s\n", cobj.precell, cobj.postcell)
+			printf("	%f, %f, %f, %f\n", cobj.syn.G1_weight, cobj.syn.G1_eRev, cobj.syn.G1_opentc, cobj.syn.G1_closetc)
+			printf("	%f, %f, %f, %f\n", cobj.syn.G2_weight, cobj.syn.G2_eRev, cobj.syn.G2_opentc, cobj.syn.G2_closetc)
+			printf("	%f, %f, %f, %f\n", cobj.syn.G3_weight, cobj.syn.G3_eRev, cobj.syn.G3_opentc, cobj.syn.G3_closetc)		
+		}
+		}
+		x = x +1
+	}
+
+	print " "
+	lister = new List("shunt")
+	x = 0
+	print "shunts:"
+	while (x < lister.count()) {
+		printf("	%s, %f, %f, %f, %f, %f, %f, %f, %f\n", lister.object[x], lister.object[x].G, lister.object[x].erev, lister.object[x].Bm, lister.object[x].Cm, lister.object[x].Tm, lister.object[x].Bh, lister.object[x].Th, lister.object[x].Ch)
+		x = x + 1
+	}
+
+}
+
+proc saveresults() {local x, y localobj f
+	f = new File()
+	f.wopen($s3)
+	for (x=0; x<$o1.size; x = x +1) {
+		y = $o1.x[x]
+		if ($o2.hashvec.x[x] > 10) { y = $o2.hashvec.x[x] }
+		f.printf("%f	%f\n", dt*x, y)
+	}
+	f.close()
+}
+
+

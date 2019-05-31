@@ -1,0 +1,136 @@
+/* Created by Nsweep */ 
+objref param[14] 
+proc paraminit() {localobj neuronpmvec 
+	param[0] = new Parameter("C2_DSI.We", "line", 4, 37.25, 1)
+
+	param[1] = new Parameter("C2_DSI.Wilong", "line", 4, -0.25, 1)
+
+	param[2] = new Parameter("VSI_DSI.Wlong", "line", 4, 2.25, 1)
+
+	param[3] = new Parameter("VSI_DSI.Wlongtc", "line", 4, -0.125, 1)
+
+	param[4] = new Parameter("VSI_C2.We", "line", 4, 2.25, 1)
+ 
+	param[5] =  new Parameter("VSI_C2.closetc", "line", 4, -0.2346, 1)
+ 
+	param[6] =  new Parameter("DSI_C2.Wlong", "line", 4, 4.75, 1)
+ 
+	param[7] =  new Parameter("DSI_C2.Wlong.opentc", "line", 4, -0.225, 1)
+ 
+	param[8] =  new Parameter("DSI_VSI.eshort", "line", 4, -0.25, 1)	
+
+	param[9] =  new Parameter("DSI_VSI.ilong", "line", 4, -0.25, 1)
+ 
+	param[10] =  new Parameter("DSI_VSI.ishort", "line", 4, -0.125, 1)
+ 
+	param[11] =  new Parameter("C2_VSI.Wi", "line", 4, -0.25, 1)	
+	
+	param[12] =  new Parameter("C2_VSI.We", "line", 4, 2.5, 1)
+
+	param[13] =  new Parameter("C2_VSI.We.closetc", "line", 4, 0.5, 1)
+  
+} 
+ 
+
+proc paramset() {
+	temp0 = C2_DSIs.G1_weight
+	C2_DSIs.G1_weight = C2_DSIs.G1_weight * plist.object(0).value
+
+	temp1 = C2_DSIs.G3_weight
+	C2_DSIs.G3_weight = C2_DSIs.G3_weight * plist.object(1).value
+
+	temp2 = VSI_DSIs.G2_weight
+	VSI_DSIs.G2_weight = VSI_DSIs.G2_weight * plist.object(2).value
+
+	temp3 = VSI_DSIs.G2_closetc
+	VSI_DSIs.G2_closetc = VSI_DSIs.G2_closetc * plist.object(3).value
+
+	temp4 = VSI_C2s.G1_weight
+	VSI_C2s.G1_weight = VSI_C2s.G1_weight * plist.object(4).value
+
+	temp5 = VSI_C2s.G1_closetc
+	VSI_C2s.G1_closetc = VSI_C2s.G1_closetc * plist.object(5).value
+
+	temp6 = DSI_C2s.G2_weight
+	DSI_C2s.G2_weight = DSI_C2s.G2_weight * plist.object(6).value
+
+	temp7 = DSI_C2s.G2_opentc
+	DSI_C2s.G2_opentc= DSI_C2s.G2_opentc* plist.object(7).value
+
+	temp8 = DSI_VSIs.G1_weight
+	DSI_VSIs.G1_weight = DSI_VSIs.G1_weight * plist.object(8).value
+
+	temp9 = DSI_VSIs.G3_weight
+	DSI_VSIs.G3_weight = DSI_VSIs.G3_weight * plist.object(9).value
+
+	temp10 =DSI_VSIs.G2_weight
+	DSI_VSIs.G2_weight = DSI_VSIs.G2_weight * plist.object(10).value
+
+	temp11a =C2_VSIs.G2_weight
+	temp11b =C2_VSIs.G3_weight
+	C2_VSIs.G2_weight = C2_VSIs.G2_weight * plist.object(11).value
+	C2_VSIs.G3_weight = C2_VSIs.G2_weight * plist.object(11).value
+
+	temp12 = C2_VSIs.G1_weight
+	C2_VSIs.G1_weight = C2_VSIs.G1_weight * plist.object(12).value
+	
+	temp13 = C2_VSIs.G1_closetc
+	C2_VSIs.G1_closetc = C2_VSIs.G1_closetc * plist.object(13).value
+} 
+ 
+proc paramrevert() {
+	C2_DSIs.G1_weight = temp0
+
+	C2_DSIs.G3_weight = temp1
+
+	VSI_DSIs.G2_weight = temp2
+
+	VSI_DSIs.G2_closetc = temp3
+
+	VSI_C2s.G1_weight = temp4
+
+	VSI_C2s.G1_closetc = temp5
+
+	DSI_C2s.G2_weight = temp6
+
+	DSI_C2s.G2_opentc= temp7
+
+	DSI_VSIs.G1_weight = temp8
+
+	DSI_VSIs.G3_weight = temp9
+
+	DSI_VSIs.G2_weight = temp10
+
+	C2_VSIs.G2_weight = temp11a
+	C2_VSIs.G3_weight = temp11b
+
+	C2_VSIs.G1_weight = temp12
+	
+	C2_VSIs.G1_closetc = temp13
+
+
+} 
+ 
+proc paramsummary() {
+		$o1.printf("%f, %f, %f, %f, %f, %f, %f, %f", DSI.sthold.spikecount, VSI.sthold.spikecount, DSI.sthold.burstno, C2.sthold.burstno, VSI.sthold.burstno, swims, swimcycle, DRI.sthold.burstno)
+
+}
+
+proc printplist() {local x
+	for (x = 0; x<plist.count(); x = x+ 1) {print plist.object(x).level, plist.object(x).value }
+}
+
+proc setlow() {
+	allhigh
+	plist.object($1).level = 0
+}
+
+
+proc allhigh() {local x
+	for (x=0; x<plist.count(); x=x+1) {plist.object(x).level = 4}
+}
+
+proc printsyns() {local x localobj mysyns
+	mysyns = new List("tholdsyn")
+	for (x = 0; x < mysyns.count(); x= x + 1) {print mysyns.object(x), mysyns.object(x).G1_weight, mysyns.object(x).G2_weight, mysyns.object(x).G3_weight, mysyns.object(x).G1_closetc, mysyns.object(x).G2_closetc, mysyns.object(x).G3_closetc }
+}

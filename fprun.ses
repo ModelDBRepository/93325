@@ -1,0 +1,47 @@
+objectvar save_window_, rvp_
+objectvar scene_vector_[4]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+
+//Begin RunFitter[0]
+{
+load_file("runfit.hoc")
+}
+{
+ocbox_=new RunFitter()
+runfit_master = ocbox_
+}
+{object_push(ocbox_)}
+{
+fitness_name = ""
+spec_fit_var("TestCell.sthold.freq")
+spec_parms("synscale", 1, -1e+06, 1e+06, 1)
+tolerance = 1e-05
+spec_parms("tcscale", 1, -1e+06, 1e+06, 1)
+tolerance = 1e-05
+init_weights(1)
+quiet_ = 0
+normweight = 1
+w_boundary.x[0] = 0
+w_weight.x[0] = 1
+w_boundary.x[1] = 1e+09
+w_weight.x[1] = 1
+build_deck()
+}
+{object_pop()}
+{
+{
+save_window_=ocbox_.g
+save_window_.size(0,300,0,200)
+scene_vector_[3] = save_window_
+ocbox_.g = save_window_
+save_window_.save_name("ocbox_.g")
+}
+ocbox_.map("RunFitter[0]", 867, 25, 399.6, 508.5)
+}
+objref ocbox_
+//End RunFitter[0]
+
+{WindowMenu[0].ses_gid(1, 1, 1, "unnamed Window Group")}
+objectvar scene_vector_[1]
+{doNotify()}

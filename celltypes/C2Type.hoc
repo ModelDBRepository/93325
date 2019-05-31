@@ -1,0 +1,62 @@
+//execute1("celltypes.element(\"Cell\")")
+
+/* C2 Type Template  */
+/* Created by Bob Calin-Jageman */
+/* Created 12/03/2002 */
+/* Modified 		*/
+
+begintemplate C2Type
+	/* public references for L29Type */
+	public soma, ileak, sthold, stholdnc, iunder, iundernc, init
+	
+	/* public sections and objectvars */
+	create soma
+	objectvar ileak, sthold, stholdnc, iunder, iundernc
+
+	proc init() {
+		
+
+		/* Basic Settings */
+		soma.L =  5.6491
+		soma.nseg = 1
+		soma.cm = 2.27*11.28
+		soma.v = -48
+		
+		/* leak object */
+		soma {ileak = new leak(0.5)}
+		ileak.vrest = -48
+		ileak.r = 23.3
+
+		/* thold object */
+		soma {sthold = new thold(0.5)}
+		sthold.steadystate = -34
+		sthold.reset = 0
+		sthold.decaytc = 65
+
+		soma stholdnc = new NetCon(&v(0.5), sthold, 0, 0, 1)
+		setpointer sthold.nc_thresh, stholdnc.threshold
+
+		/* spike overshoot objects */
+		soma {iunder = new tholdsyn(0.5)}
+		soma iundernc = new NetCon(&v(0.5), iunder, 0, 0, 1)
+	
+		iunder.G1_weight = 0.12
+		iunder.G2_weight = 0.028
+		iunder.G3_weight = 0.003
+	
+		iunder.G1_eRev = -80
+		iunder.G2_eRev = -80
+		iunder.G3_eRev = -80
+	
+		iunder.G1_opentc = 10
+		iunder.G2_opentc = 10
+		iunder.G3_opentc = 4000
+
+		iunder.G1_closetc = 30
+		iunder.G2_closetc = 1200
+		iunder.G3_closetc = 4000
+
+	}
+	
+
+endtemplate C2Type

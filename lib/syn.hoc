@@ -1,0 +1,105 @@
+objectvar DSI_C2s, DSI_C2nc
+C2.soma {DSI_C2s = new tholdsyn(0.5)}
+access DSI.soma
+DSI_C2nc = new NetCon(&v(0.5), DSI_C2s, 0, 0, 1)
+synlist.append(DSI_C2s)
+	
+objectvar DSI_VSIs, DSI_VSInc
+VSI.soma {DSI_VSIs = new tholdsyn(0.5)}
+access DSI.soma
+DSI_VSInc = new NetCon(&v(0.5), DSI_VSIs, 0, 0, 1)
+synlist.append(DSI_VSIs)
+
+objectvar DSI_DSIs, DSI_DSInc
+DSI.soma {DSI_DSIs = new tholdsyn(0.5)}
+access DSI.soma
+DSI_DSInc = new NetCon(&v(0.5), DSI_DSIs, 0, 0, 1)
+synlist.append(DSI_DSIs)
+
+
+objectvar C2_DSIs, C2_DSInc
+DSI.soma {C2_DSIs = new tholdsyn(0.5)}
+access C2.soma
+C2_DSInc = new NetCon(&v(0.5), C2_DSIs, 0, 0, 1)
+synlist.append(C2_DSIs)
+
+objectvar C2_VSIs, C2_VSInc
+VSI.soma {C2_VSIs = new tholdsyn(0.5)}
+access C2.soma
+C2_VSInc = new NetCon(&v(0.5), C2_VSIs, 0, 0, 1)
+synlist.append(C2_VSIs)
+
+objectvar VSI_DSIs, VSI_DSInc
+DSI.soma {VSI_DSIs = new tholdsyn(0.5)}
+access VSI.soma
+VSI_DSInc = new NetCon(&v(0.5), VSI_DSIs, 0, 0, 1)
+synlist.append(VSI_DSIs)
+	
+objectvar VSI_C2s, VSI_C2nc
+C2.soma {VSI_C2s = new tholdsyn(0.5)}
+access VSI.soma
+VSI_C2nc = new NetCon(&v(0.5), VSI_C2s, 0, 0, 1)
+synlist.append(VSI_C2s)
+
+objectvar VSI_VSIs, VSI_VSInc
+VSI.soma {VSI_VSIs = new tholdsyn(0.5)}
+access VSI.soma
+VSI_VSInc = new NetCon(&v(0.5), VSI_VSIs, 0, 0, 1)
+synlist.append(VSI_VSIs)
+	
+objectvar IF_DSIs, IF_DSInc
+DSI.soma {IF_DSIs = new tholdsyn(0.5)}
+access IF.soma
+IF_DSInc = new NetCon(&v(0.5), IF_DSIs, 0, 0, 1)
+
+objectvar IF_DRIs, IF_DRInc
+DRI.soma {IF_DRIs = new tholdsyn(0.5)}
+access IF.soma
+IF_DRInc = new NetCon(&v(0.5), IF_DRIs, 0, 0, 1)
+
+objectvar IF_VSIs, IF_VSInc
+VSI.soma {IF_VSIs = new tholdsyn(0.5)}
+access IF.soma
+IF_VSInc = new NetCon(&v(0.5), IF_VSIs, 0, 0, 1)
+
+objectvar DRI_DSIs, DRI_DSInc
+DSI.soma {DRI_DSIs = new tholdsyn(0.5)}
+access DRI.soma
+DRI_DSInc = new NetCon(&v(0.5), DRI_DSIs, 0, 0, 1)
+
+objectvar C2_DRIs, C2_DRInc
+DRI.soma {C2_DRIs = new tholdsyn(0.5)}
+access C2.soma
+C2_DRInc = new NetCon(&v(0.5), C2_DRIs, 0, 0, 1)
+
+proc readsyn() {localobj synfile
+	synfile = new File()
+	synfile.ropen($s1)
+	
+
+	$o2.G1_weight = synfile.scanvar()
+	$o2.G1_eRev = synfile.scanvar()
+	$o2.G1_opentc = synfile.scanvar()
+	$o2.G1_closetc = synfile.scanvar()
+
+	$o2.G2_weight = synfile.scanvar()
+	$o2.G2_eRev = synfile.scanvar()
+	$o2.G2_opentc = synfile.scanvar()
+	$o2.G2_closetc = synfile.scanvar()
+
+	$o2.G3_weight = synfile.scanvar()
+	$o2.G3_eRev = synfile.scanvar()
+	$o2.G3_opentc = synfile.scanvar()
+	$o2.G3_closetc = synfile.scanvar()
+
+	w1 = $o2.G1_weight 
+	tc1 = $o2.G1_closetc 
+	
+	w2 = $o2.G2_weight 
+	tc2 = $o2.G2_closetc 
+
+	w3 = $o2.G3_weight 
+	tc3 = $o2.G3_closetc 
+	
+}
+

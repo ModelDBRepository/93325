@@ -1,0 +1,72 @@
+//execute1("celltypes.element(\"Cell\")")
+
+/* DRI Type Template  */
+/* Created by Bob Calin-Jageman */
+
+begintemplate DRIType
+	/* public references for DRIType */
+	public soma, ileak, ishunt, sthold, stholdnc, iunder, iundernc
+	
+	/* public sections and objectvars */
+	create soma
+	objectvar ileak, ishunt, sthold, stholdnc, iunder, iundernc
+
+	proc init() {
+		
+
+		/* Basic Settings */
+		soma.L =  5.6491
+		soma.nseg = 1
+		soma.cm = 1.16*11.28
+		soma.v = -44.10
+		
+		/* leak object */
+		soma {ileak = new leak(0.5)}
+		ileak.vrest = -44.10
+		ileak.r = 26.50
+
+		/* shunt object */
+		soma {ishunt = new shunt(0.5)}
+		ishunt.G = 0.2
+		ishunt.erev = -44.10
+		ishunt.Bm = -15
+		ishunt.Cm = -10
+		ishunt.Tm = 15
+		ishunt.Bh = -100
+		ishunt.Ch = 1
+		ishunt.Th = 100000
+		ishunt.vstart = -44.10
+
+
+		/* thold object */
+		soma {sthold = new thold(0.5)}
+		sthold.steadystate = -34.50
+		sthold.reset = 200
+		sthold.decaytc = 15
+
+		soma stholdnc = new NetCon(&v(0.5), sthold, 0, 0, 1)
+		setpointer sthold.nc_thresh, stholdnc.threshold
+
+		/* spike overshoot objects */
+		soma {iunder = new tholdsyn(0.5)}
+		soma iundernc = new NetCon(&v(0.5), iunder, 0, 0, 1)
+	
+		iunder.G1_weight = 0.08
+		iunder.G2_weight = 0.005
+		iunder.G3_weight = 0.0015
+	
+		iunder.G1_eRev = -80
+		iunder.G2_eRev = -80
+		iunder.G3_eRev = -80
+	
+		iunder.G1_opentc = 15
+		iunder.G2_opentc = 250
+		iunder.G3_opentc = 1500
+
+		iunder.G1_closetc = 60
+		iunder.G2_closetc = 400
+		iunder.G3_closetc = 4000
+
+	}
+
+endtemplate DRIType
